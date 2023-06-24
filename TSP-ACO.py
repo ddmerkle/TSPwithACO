@@ -36,10 +36,6 @@
 # Need a best solution
 
 
-
-
-
-
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -79,34 +75,51 @@ class Ant():
         '''constructor'''
     
         self.name = name
-        self.startPoint = startPoint
-        self.visitLis = []
+        self.tourLis = []
         
         #defines starting point in list
-        self.visitLis.append(self.startPoint)
+        self.tourLis.append(startPoint)
     
-    # def visited_cities(self, cityObject)
+    def visit(self, cityObject):
+        '''Ant has visited this city'''
+        self.tourLis.append(cityObject)
+
+    def get_tour(self):
+
+        return self.tourLis
     
     # def get_distance_traveled(self):
     
     def __repr__(self):
         '''returns string representation of ant'''
     
-        return '({name}: list: {visitLis})'.format(name = self.name, 
-                                                   visitLis = self.visitLis)
+        return '({name}: list: {tourLis})'.format(name = self.name, 
+                                                   tourLis = self.tourLis)
 
 #################################################
+
+for ant in colony:
+    for city in cityList:
+        finishtour(city)
+
+
+
+def do_tour():
+    probLis = createprobabilities(cityList)
+    city = roulettewheelselection(probLis)
+    ant.visit(city)
+    cityList.delete(city)
+
+
+
+
+
 
 
 # def visit_city(self, pheromoneTrails):
 # def visit_random_city(self):
 # def visit_probabilistic_city(self, pheromonTrails):
 # def roulette_wheel_selection(self, probabilities):
-
-
-
-
-
 
 
 def proportional_roulette_selection(population, normProbabilities):
@@ -198,11 +211,14 @@ def create_cities(NUM_ANT_FACTOR, NUM_CITY):
 def main():
     '''main function'''
 
-
-
     # Hyperparameters
     NUM_ANT_FACTOR = 1
     NUM_CITY = 10
+    ALPHA = 1
+    BETA  = 1
+    RANDOM_ATTRACTION_FACTOR = 0.5
+    NUM_ITERATIONS = 10
+    EVAPORATION_RATE = 0.5
 
 
     random.seed(1)
@@ -236,21 +252,6 @@ def main():
     # print('This is the colony: ')
     # print(antColony)
     # print('\n')
-
-
-    
-
-
-    # poop = [1,1,4,23,43,4,2,123,4,1]
-
-    
-    # adjMatrix = [[0] * len(poop)] * len(poop)
-
-    # for x in range(len(adjMatrix)):
-    #     print(adjMatrix[x])
-
-
-
 
 
 if __name__ == '__main__':
