@@ -20,20 +20,20 @@
 
 
 
-# Hyperparameters
-
-# Number of ants (usually the number of cities)
-# Number of iterations
-# Alpha
-# Beta
-# Evaporation rate
 
 
-# Necessary things
+# WHAT WERE GOING TO DO
 
-# Going to need an adjacency matrix for the distances from each city
-# Going to need an adjacency matrix for the pheromones
-# Need a best solution
+# def create_probabilities(colony(unvisited cities), cityList, pheratrix) 
+    #-> ant, probabilities
+
+    # for city in cityList:
+    #     if city not in ant.visited:
+
+
+# def roulette_wheel(colony, probabilities)
+    # returns the city that the ant should move to 
+    # unvisitedCities(index of city chosen)
 
 
 import random
@@ -60,6 +60,11 @@ class City():
     def get_coords(self):
         '''returns tuple of x and y'''
         return self.x, self.y
+    
+    def get_name(self):
+        '''returns name'''
+
+        return "({name})".format(name = self.name)
     
     def __repr__(self):
         '''returns string representation of city'''
@@ -96,23 +101,20 @@ class Ant():
         return '({name}: list: {tourLis})'.format(name = self.name, 
                                                    tourLis = self.tourLis)
 
+
 #################################################
 
-for ant in colony:
-    for city in cityList:
-        finishtour(city)
+# for ant in colony:
+#     for city in cityList:
+#         finishtour(city)
 
 
 
-def do_tour():
-    probLis = createprobabilities(cityList)
-    city = roulettewheelselection(probLis)
-    ant.visit(city)
-    cityList.delete(city)
-
-
-
-
+# def do_tour():
+#     probLis = createprobabilities(cityList)
+#     city = roulettewheelselection(probLis)
+#     ant.visit(city)
+#     cityList.delete(city)
 
 
 
@@ -166,12 +168,60 @@ def create_distance_matrix(cityList):
         for y in range(len(cityList)):
             disMatrix[x][y] = cityList[x].get_distance(cityList[y])
 
+
+    strCityList = []
+    for city in cityList:
+        strCityList.append(str(city.__repr__()))
+
+    disMatDict = dict(zip(strCityList, disMatrix))
+    print('!!!!!!!!!!!!!!')
+    
+    i = list(disMatDict).index('(Palm Bay: x:176, y:155)')
+    j = list(disMatDict).index('(Key West: x:179, y:194)')
+    print(i)
+    print(j)
+    print(disMatrix[i][j])
+    print('!!!!!!!!!!!!!!')
+
+
+    '''
+    NEED
+    
+    pharatrix
+    dismatrix
+    
+    ant starts at city[0] and goes to city[1] (for iteration 0 next city
+    is determined by roulette wheel with lowest distance being the only factor),
+    we need to find from the distance matrix where city[0] and city[1] is. 
+    Could be Boca to Key West which could return disMatrix[0][2]. 
+    We need to save this value in order to update pheratrix[10][5]. 
+    ONE ant will return pairs of [x][y] to update all routes 
+    it took during it's tour
+    
+    The ants city[0] and city[1] return a string (Boca)(Key West) which 
+    is then searched in the disMatrix. This is done with a dictionary 
+    (disMatDict) where {Boca : [0, 2, 4, 5...]} and 
+    {Key West : [4, 6, 0, 4...]}. The value of 0 indicates which city is 
+    at index 0 of disMatrix so disMatrix[0] is Boca and disMatrix[2] 
+    is key west. disMatrix[0][2] will give us the distance between those two 
+    cities'''
+
+        
+    # print(disMatDict.get(strCityList[index]))
+    print('!!!!!!!!!!!!!!')
+
+
+    # for city in cityList:
+    #     for route in disMatrix:
+    #         disMatDict[city.get_name()] = route
+    #         break
+
     # print('\n')
     # print(disMatrix[0][9])
     # print('\n')
     # print(disMatrix[9])
     
-    return disMatrix
+    return disMatrix, disMatDict
 
 
 def create_cities(NUM_ANT_FACTOR, NUM_CITY):
@@ -238,10 +288,16 @@ def main():
     
 
     # create_distance_matrix(cityList)
-    disMatrix = create_distance_matrix(cityList)
+    disMatrix, disMatDict = create_distance_matrix(cityList)
     print('\n')
     for row in disMatrix:
+        print('\n')
         print(row)
+
+
+    print('\n')
+    print(disMatDict)
+    print('\n')
 
     # print(disMatrix[3][4])
 
