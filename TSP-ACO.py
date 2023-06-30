@@ -122,6 +122,7 @@ def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA):
     '''does tour for all ants'''
     probList = create_probabilities(ant, cityList, strCityList, disMatrix, 
                                     pheratrix, ALPHA, BETA)
+    proportional_roulette_selection(ant, probList)
 
 def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix, 
                          ALPHA, BETA):
@@ -132,6 +133,16 @@ def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix,
 
     denominator = 0
     currentCity = cityList.index(ant.get_tour()[-1])
+    print('\n')
+    print('This is the city list: ')
+    print(cityList)
+    print('\n')
+
+    print('\n')
+    print('This is the current city:')
+    print(currentCity)
+    print('\n')
+
     unVisitedList = []
     probList = []
     # print(currentCity)
@@ -164,35 +175,58 @@ def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix,
     print('These are the probabilities')
     print(probList)
     print('\n')
+
+    print('\n')
+    print('This is the unvisited list: ')
+    print(unVisitedList)
+    print('\n')
     return probList
 
 
-def proportional_roulette_selection(population, normProbabilities):
+def proportional_roulette_selection(ant, probList):
     '''Selecting parents using proportional roulette selection'''
 
     slices = []
-    for slice in range(len(normProbabilities)):
+    for slice in range(len(probList)):
         sliceCounter = 0
         if slice == 0:
-            slices.append(normProbabilities[0])
+            slices.append(probList[0])
         else:
+            slices.append(slices[sliceCounter-1] + probList[slice])
 
-            slices.append(slices[sliceCounter-1] + normProbabilities[slice])
+    print('\n')
+    print('These are the slices: ')
+    print(slices)
+    print('\n')
 
     randomNumber = random.uniform(0,1)
 
     for index, slice in enumerate(slices):
         if randomNumber < slice:
-            return population[index]
+            print('\n')
+            print('This is the slice chosen:')
+            print(slices[index])
+            print('\n')
+            return
+            # return slices[index]
         
 
 def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
 
+    print('\n')
+    print('CITY LIST CHECK:')
+    print(cityList)
+    print('\n')
+
+    tempCityList = cityList
+
     antColony = []
     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
-        random.shuffle(cityList)
+        random.shuffle(tempCityList)
         antName = 'Ant_' + str(antCount)
-        antColony.append(Ant(name=antName, startPoint=cityList[0]))
+        antColony.append(Ant(name=antName, startPoint=tempCityList[0]))
+
+    cityList = tempCityList
 
     return antColony
 
@@ -310,10 +344,12 @@ def main():
     print(strCityList)
     print('\n')
 
+
     disMatrix = create_distance_matrix(cityList)
     print('\n')
     for row in disMatrix:
         print(row)
+
 
     i = strCityList.index('(Palm Bay: x:176, y:155)')
     j = strCityList.index('(Key West: x:179, y:194)')
@@ -328,10 +364,16 @@ def main():
     for row in pheratrix:
         print(row)
 
+
     antColony = create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY)
     print('\n')
     print('This is the colony: ')
     print(antColony)
+    print('\n')
+
+    print('\n')
+    print('This is the city list CHECK:')
+    print(cityList)
     print('\n')
 
     for ant in antColony:
