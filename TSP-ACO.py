@@ -39,6 +39,7 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 
 class City():
@@ -120,19 +121,43 @@ class Ant():
 
 def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA):
     '''does tour for all ants'''
-    probList = create_probabilities(ant, cityList, strCityList, disMatrix, 
+    
+
+# HERES WHERE WE WILL HAVE A LOOP FOR THE ANT TO COMPLETE ITS TOUR
+    probList, unVisitedList = create_probabilities(ant, cityList, strCityList, disMatrix, 
                                     pheratrix, ALPHA, BETA)
-    proportional_roulette_selection(ant, probList)
+    indexofNextCity = proportional_roulette_selection(probList)
+
+    tempindex = unVisitedList[indexofNextCity]
+    ant.visit(cityList[tempindex])
+    print('\n')
+    print('ANT AFTER PROBS/SELECTION: ')
+    print(str(ant))
+    print('\n')
+    
+
+
 
 def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix, 
                          ALPHA, BETA):
     '''create probabilities for cities to be used in roulette for an ant'''
 
+    print('\n')
+    print('ANT: ')
     print(str(ant))
     print('\n')
 
+    print('\n')
+    print('This is the city list: ')
+    print(cityList)
+    print('\n')
+
+
     denominator = 0
+
     currentCity = cityList.index(ant.get_tour()[-1])
+
+
     print('\n')
     print('This is the city list: ')
     print(cityList)
@@ -180,10 +205,10 @@ def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix,
     print('This is the unvisited list: ')
     print(unVisitedList)
     print('\n')
-    return probList
+    return probList, unVisitedList
 
 
-def proportional_roulette_selection(ant, probList):
+def proportional_roulette_selection(probList):
     '''Selecting parents using proportional roulette selection'''
 
     slices = []
@@ -207,9 +232,15 @@ def proportional_roulette_selection(ant, probList):
             print('This is the slice chosen:')
             print(slices[index])
             print('\n')
-            return
+
+            print('\n')
+            print('This is the index of the chosen city: ')
+            print(index)
+            print('\n')
+            return index
             # return slices[index]
         
+
 
 def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
 
@@ -218,17 +249,56 @@ def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
     print(cityList)
     print('\n')
 
-    tempCityList = cityList
 
     antColony = []
     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
-        random.shuffle(tempCityList)
+        tempRandNum = random.randint(0, len(cityList) - 1)
         antName = 'Ant_' + str(antCount)
-        antColony.append(Ant(name=antName, startPoint=tempCityList[0]))
-
-    cityList = tempCityList
+        antColony.append(Ant(name=antName, startPoint=cityList[tempRandNum]))
 
     return antColony
+
+# DEEPCOPY ONE 
+
+# def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
+
+#     print('\n')
+#     print('CITY LIST CHECK:')
+#     print(cityList)
+#     print('\n')
+
+#     tempCityList = copy.deepcopy(cityList)
+
+#     antColony = []
+#     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
+#         random.shuffle(tempCityList)
+#         antName = 'Ant_' + str(antCount)
+#         antColony.append(Ant(name=antName, startPoint=tempCityList[0]))
+
+
+#     return antColony
+
+# ORIGINAL FUNCTION 
+
+# def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
+
+#     print('\n')
+#     print('CITY LIST CHECK:')
+#     print(cityList)
+#     print('\n')
+
+#     tempCityList = cityList
+
+#     antColony = []
+#     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
+#         random.shuffle(tempCityList)
+#         antName = 'Ant_' + str(antCount)
+#         antColony.append(Ant(name=antName, startPoint=tempCityList[0]))
+
+#     cityList = tempCityList
+
+#     return antColony
+
 
 
 def create_pheromone_matrix(cityList):
