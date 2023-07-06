@@ -39,6 +39,7 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 import copy
 
 
@@ -78,24 +79,37 @@ class City():
 class Ant():
     '''ant class'''
 
-    def __init__(self, name, startPoint):
+    def __init__(self, name):
         '''constructor'''
     
         self.name = name
         self.tourList = []
-        
-        #defines starting point in list
+        self.distance = 0
+    
+    def set_start(self, startPoint):
+        '''#defines starting point in list'''
         self.tourList.append(startPoint)
     
     def visit(self, cityObject):
         '''Ant has visited this city'''
         self.tourList.append(cityObject)
 
-    def get_tour(self):
+    def get_tour(self, reset=False):
+
+        if reset:
+            self.tourList = []
 
         return self.tourList
-    
-    # def get_distance_traveled(self):
+
+    def set_distance(self, antDistance):
+        '''sets distance of ant'''
+
+        self.distance = antDistance
+
+    def get_distance(self):
+        '''gets distance of ant'''
+
+        return self.distance
     
     def __repr__(self):
         '''returns string representation of ant'''
@@ -119,21 +133,67 @@ class Ant():
 
 
 
-def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA):
+def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA, BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE):
     '''does tour for all ants'''
     
 
-# HERES WHERE WE WILL HAVE A LOOP FOR THE ANT TO COMPLETE ITS TOUR
-    probList, unVisitedList = create_probabilities(ant, cityList, strCityList, disMatrix, 
-                                    pheratrix, ALPHA, BETA)
-    indexofNextCity = proportional_roulette_selection(probList)
+    # HERES WHERE WE WILL HAVE A LOOP FOR THE ANT TO COMPLETE ITS TOUR
 
-    tempindex = unVisitedList[indexofNextCity]
-    ant.visit(cityList[tempindex])
-    print('\n')
-    print('ANT AFTER PROBS/SELECTION: ')
-    print(str(ant))
-    print('\n')
+    for _ in range(len(cityList) - 1):
+
+        probList, unVisitedList = create_probabilities(ant, cityList, strCityList, 
+                                                    disMatrix, pheratrix, 
+                                                    ALPHA, BETA)
+    
+        indexofNextCity = proportional_roulette_selection(probList)
+
+        tempindex = unVisitedList[indexofNextCity]
+        ant.visit(cityList[tempindex])
+
+        
+    # finding the total distance for the ants route
+    totalDis = 0
+    for index in range(len(cityList)):
+        if index == (len(cityList)-1):
+            totalDis += ant.get_tour()[index].get_distance(ant.get_tour()[0])
+        else:
+            totalDis += ant.get_tour()[index].get_distance(
+                ant.get_tour()[index+1])
+        # print(totalDis)
+
+
+
+    ant.set_distance(totalDis)
+        
+    #adding start point to end
+    ant.visit(ant.get_tour()[0])
+    
+
+    # seeing if the route is new best route
+    if ant.get_distance() < BEST_GLOBAL_DISTANCE:
+        BEST_GLOBAL_DISTANCE = ant.get_distance()
+        BEST_GLOBAL_ROUTE = copy.deepcopy(ant.get_tour())
+
+
+
+    # print('\n')
+    # print('This is the distance of the ants route:')
+    # print(ant.get_distance())
+    # print('\n')
+
+    # print('\n')
+    # print('ANT AFTER PROBS/SELECTION: ')
+    # print(str(ant))
+    # print('\n')
+    
+    
+
+
+    # UPDATE TEMP PHERAMONE MATRIX
+
+
+
+    return BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, ant.get_distance()
     
 
 
@@ -142,15 +202,15 @@ def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix,
                          ALPHA, BETA):
     '''create probabilities for cities to be used in roulette for an ant'''
 
-    print('\n')
-    print('ANT: ')
-    print(str(ant))
-    print('\n')
+    # print('\n')
+    # print('ANT: ')
+    # print(str(ant))
+    # print('\n')
 
-    print('\n')
-    print('This is the city list: ')
-    print(cityList)
-    print('\n')
+    # print('\n')
+    # print('This is the city list: ')
+    # print(cityList)
+    # print('\n')
 
 
     denominator = 0
@@ -158,15 +218,15 @@ def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix,
     currentCity = cityList.index(ant.get_tour()[-1])
 
 
-    print('\n')
-    print('This is the city list: ')
-    print(cityList)
-    print('\n')
+    # print('\n')
+    # print('This is the city list: ')
+    # print(cityList)
+    # print('\n')
 
-    print('\n')
-    print('This is the current city:')
-    print(currentCity)
-    print('\n')
+    # print('\n')
+    # print('This is the current city:')
+    # print(currentCity)
+    # print('\n')
 
     unVisitedList = []
     probList = []
@@ -190,21 +250,21 @@ def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix,
         if currentCity == city:
             continue
 
-        numarator = ((pheratrix[currentCity][city]**ALPHA) * 
+        numerator = ((pheratrix[currentCity][city]**ALPHA) * 
                         ((1/disMatrix[currentCity][city])**BETA))
 
-        cityProb = numarator / denominator
+        cityProb = numerator / denominator
 
         probList.append(cityProb)
 
-    print('These are the probabilities')
-    print(probList)
-    print('\n')
+    # print('These are the probabilities')
+    # print(probList)
+    # print('\n')
 
-    print('\n')
-    print('This is the unvisited list: ')
-    print(unVisitedList)
-    print('\n')
+    # print('\n')
+    # print('This is the unvisited list: ')
+    # print(unVisitedList)
+    # print('\n')
     return probList, unVisitedList
 
 
@@ -219,24 +279,24 @@ def proportional_roulette_selection(probList):
         else:
             slices.append(slices[sliceCounter-1] + probList[slice])
 
-    print('\n')
-    print('These are the slices: ')
-    print(slices)
-    print('\n')
+    # print('\n')
+    # print('These are the slices: ')
+    # print(slices)
+    # print('\n')
 
     randomNumber = random.uniform(0,1)
 
     for index, slice in enumerate(slices):
         if randomNumber < slice:
-            print('\n')
-            print('This is the slice chosen:')
-            print(slices[index])
-            print('\n')
+            # print('\n')
+            # print('This is the slice chosen:')
+            # print(slices[index])
+            # print('\n')
 
-            print('\n')
-            print('This is the index of the chosen city: ')
-            print(index)
-            print('\n')
+            # print('\n')
+            # print('This is the index of the chosen city: ')
+            # print(index)
+            # print('\n')
             return index
             # return slices[index]
         
@@ -244,39 +304,21 @@ def proportional_roulette_selection(probList):
 
 def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
 
-    print('\n')
-    print('CITY LIST CHECK:')
-    print(cityList)
-    print('\n')
+    # print('\n')
+    # print('CITY LIST CHECK:')
+    # print(cityList)
+    # print('\n')
 
 
     antColony = []
     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
-        tempRandNum = random.randint(0, len(cityList) - 1)
+        randomIndex = random.randint(0, len(cityList) - 1)
         antName = 'Ant_' + str(antCount)
-        antColony.append(Ant(name=antName, startPoint=cityList[tempRandNum]))
+        antColony.append(Ant(name=antName))
+        antColony[antCount].set_start(cityList[randomIndex])
 
     return antColony
 
-# DEEPCOPY ONE 
-
-# def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
-
-#     print('\n')
-#     print('CITY LIST CHECK:')
-#     print(cityList)
-#     print('\n')
-
-#     tempCityList = copy.deepcopy(cityList)
-
-#     antColony = []
-#     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
-#         random.shuffle(tempCityList)
-#         antName = 'Ant_' + str(antCount)
-#         antColony.append(Ant(name=antName, startPoint=tempCityList[0]))
-
-
-#     return antColony
 
 # ORIGINAL FUNCTION 
 
@@ -395,60 +437,131 @@ def main():
 
     # Hyperparameters
     NUM_ANT_FACTOR = 1
-    NUM_CITY = 10
+    NUM_CITY = 20
     ALPHA = 1
     BETA  = 2
     RANDOM_ATTRACTION_FACTOR = 0.5
-    NUM_ITERATIONS = 10
+    NUM_ITERATIONS = 1000
     EVAPORATION_RATE = 0.5
 
+    BASELINE_DISTANCE = 0
+    
+    BEST_ITERATION_DISTANCE = []
+    CURRENT_TOUR = 0
+    
 
-    random.seed(1)
+    BEST_GLOBAL_DISTANCE = math.inf
+    BEST_GLOBAL_ROUTE = []
+
+
+    # random.seed(1)
 
     cityList, strCityList = create_cities(NUM_ANT_FACTOR, NUM_CITY)
-    print('\n')
-    print('This is the city list in object format: ')
-    print(cityList)
-    print('!!!!!!!!!!!!!!')
-    print('This is the city list in str format: ')
-    print(strCityList)
-    print('\n')
+    # print('\n')
+    # print('This is the city list in object format: ')
+    # print(cityList)
+    # print('!!!!!!!!!!!!!!')
+    # print('This is the city list in str format: ')
+    # print(strCityList)
+    # print('\n')
+
+
+    # Looping through cityList to get baseline distance
+    for index, city in enumerate(cityList):
+
+        if index == len(cityList)-1:
+            BASELINE_DISTANCE += city.get_distance(cityList[0])
+        else:
+            BASELINE_DISTANCE += city.get_distance(cityList[index+1])
+
+    
+        
+    
+
 
 
     disMatrix = create_distance_matrix(cityList)
-    print('\n')
-    for row in disMatrix:
-        print(row)
+    # print('\n')
+    # for row in disMatrix:
+    #     print(row)
 
 
-    i = strCityList.index('(Palm Bay: x:176, y:155)')
-    j = strCityList.index('(Key West: x:179, y:194)')
+    # i = strCityList.index('(Palm Bay: x:176, y:155)')
+    # j = strCityList.index('(Key West: x:179, y:194)')
 
-    ant = disMatrix[i][j]
-    print('!!!!!!!!!!!!!!')
-    print(ant)
-    print('!!!!!!!!!!!!!!')
+    # ant = disMatrix[i][j]
+    # print('!!!!!!!!!!!!!!')
+    # print(ant)
+    # print('!!!!!!!!!!!!!!')
 
     pheratrix = create_pheromone_matrix(cityList)
-    print('\n')
-    for row in pheratrix:
-        print(row)
+    # print('\n')
+    # for row in pheratrix:
+    #     print(row)
 
 
     antColony = create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY)
+    # print('\n')
+    # print('This is the colony: ')
+    # print(antColony)
+    # print('\n')
+
+    # print('\n')
+    # print('This is the city list CHECK:')
+    # print(cityList)
+    # print('\n')
+
+
+    for _ in range(NUM_ITERATIONS):
+
+        TEMP_TOUR_LIST = []
+
+        for ant in antColony:
+            BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, CURRENT_TOUR = do_tour(ant, cityList, strCityList, disMatrix, 
+                                        pheratrix, ALPHA, BETA, 
+                                        BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE)
+
+            TEMP_TOUR_LIST.append(CURRENT_TOUR)
+
+
+            # break
+
+
+        TEMP_TOUR_LIST.sort()
+        BEST_ITERATION_DISTANCE.append(TEMP_TOUR_LIST[0])
+
+
+        # get rid of stuff
+        for ant in antColony:
+            ant.get_tour(True)
+            ant.set_distance(0)
+            randomindex = random.randint(0, len(cityList) - 1)
+            ant.set_start(cityList[randomindex])
+
+
+
+
+    print('!!!!!!!!!!!!!!')
     print('\n')
-    print('This is the colony: ')
-    print(antColony)
+    print('This is baseline length: ')
+    print(BASELINE_DISTANCE)
+    print('\n')
+
+    # print('\n')
+    # print('This is iteration best distance: ')
+    # print(BEST_ITERATION_DISTANCE)
+    # print('\n')
+
+    print('\n')
+    print('This is global best distance: ')
+    print(BEST_GLOBAL_DISTANCE)
     print('\n')
 
     print('\n')
-    print('This is the city list CHECK:')
-    print(cityList)
+    print('This is global best route: ')
+    print(BEST_GLOBAL_ROUTE)
     print('\n')
 
-    for ant in antColony:
-        do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA)
-        break
 
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     print('done')
