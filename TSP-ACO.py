@@ -133,7 +133,9 @@ class Ant():
 
 
 
-def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA, BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, tempPheramones):
+def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA, 
+            BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, tempPheramones, 
+            EVAPORATION_RATE):
     '''does tour for all ants'''
     
 
@@ -153,7 +155,6 @@ def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA, BEST_
         ant.visit(cityList[tempindex])
 
 
-        
     # finding the total distance for the ants route
     totalDis = 0
     for index in range(len(cityList)):
@@ -164,31 +165,34 @@ def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA, BEST_
                 ant.get_tour()[index+1])
         # print(totalDis)
 
-
+    ant.set_distance(totalDis)
 
     # UPDATE PHERAMONE MATRIX HERE
     pheramone = 1 / totalDis
-    for index in range(len(cityList) - 1):
+    for index in range(len(cityList)):
         # get city index and second city index and update matrix
+        if index == (len(cityList)-1):
 
-        cityindex1 = cityList.index(ant.get_tour()[index])
-        cityindex2 = cityList.index(ant.get_tour()[index + 1])
+            cityindex1 = cityList.index(ant.get_tour()[index])
+            cityindex2 = cityList.index(ant.get_tour()[0])
+    
+            tempPheramones[cityindex1][cityindex2] += pheramone
+        else:
 
-        tempPheramones[cityindex1][cityindex2] += pheramone
+            cityindex1 = cityList.index(ant.get_tour()[index])
+            cityindex2 = cityList.index(ant.get_tour()[index + 1])
+
+            tempPheramones[cityindex1][cityindex2] += pheramone
 
 
-
-    ant.set_distance(totalDis)
-        
     #adding start point to end
-    ant.visit(ant.get_tour()[0])
+    # ant.visit(ant.get_tour()[0])
     
 
     # seeing if the route is new best route
     if ant.get_distance() < BEST_GLOBAL_DISTANCE:
         BEST_GLOBAL_DISTANCE = ant.get_distance()
         BEST_GLOBAL_ROUTE = copy.deepcopy(ant.get_tour())
-
 
 
     # print('\n')
@@ -201,17 +205,11 @@ def do_tour(ant, cityList, strCityList, disMatrix, pheratrix, ALPHA, BETA, BEST_
     # print(str(ant))
     # print('\n')
     
-    
-
 
     # UPDATE TEMP PHERAMONE MATRIX
 
-
-
     return BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, ant.get_distance(), tempPheramones
     
-
-
 
 def create_probabilities(ant, cityList, strCityList, disMatrix, pheratrix, 
                          ALPHA, BETA):
@@ -299,6 +297,7 @@ def proportional_roulette_selection(probList):
     # print(slices)
     # print('\n')
 
+    # random.seed(1)
     randomNumber = random.uniform(0,1)
 
     for index, slice in enumerate(slices):
@@ -313,9 +312,7 @@ def proportional_roulette_selection(probList):
             # print(index)
             # print('\n')
             return index
-            # return slices[index]
         
-
 
 def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
 
@@ -327,35 +324,13 @@ def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
 
     antColony = []
     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
+        # random.seed(1)
         randomIndex = random.randint(0, len(cityList) - 1)
         antName = 'Ant_' + str(antCount)
         antColony.append(Ant(name=antName))
         antColony[antCount].set_start(cityList[randomIndex])
 
     return antColony
-
-
-# ORIGINAL FUNCTION 
-
-# def create_colony(cityList, NUM_ANT_FACTOR, NUM_CITY):
-
-#     print('\n')
-#     print('CITY LIST CHECK:')
-#     print(cityList)
-#     print('\n')
-
-#     tempCityList = cityList
-
-#     antColony = []
-#     for antCount in range(0, int((NUM_ANT_FACTOR * NUM_CITY))):
-#         random.shuffle(tempCityList)
-#         antName = 'Ant_' + str(antCount)
-#         antColony.append(Ant(name=antName, startPoint=tempCityList[0]))
-
-#     cityList = tempCityList
-
-#     return antColony
-
 
 
 def create_pheromone_matrix(cityList):
@@ -371,40 +346,6 @@ def create_distance_matrix(cityList):
     for x in range(len(cityList)):
         for y in range(len(cityList)):
             disMatrix[x][y] = cityList[x].get_distance(cityList[y])
-
-    # disMatDict = dict(zip(strCityList, disMatrix))
-    # print('!!!!!!!!!!!!!!')
-    
-    # i = list(disMatDict).index('(Palm Bay: x:176, y:155)')
-    # j = list(disMatDict).index('(Key West: x:179, y:194)')
-    # print(i)
-    # print(j)
-    # print(disMatrix[i][j])
-    # print('!!!!!!!!!!!!!!')
-
-    '''
-    NEED
-    
-    pharatrix
-    dismatrix
-    
-    ant starts at city[0] and goes to city[1] (for iteration 0 next city
-    is determined by roulette wheel with lowest distance being the only factor),
-    we need to find from the distance matrix where city[0] and city[1] is. 
-    Could be Boca to Key West which could return disMatrix[0][2]. 
-    We need to save this value in order to update pheratrix[10][5]. 
-    ONE ant will return pairs of [x][y] to update all routes 
-    it took during it's tour
-    
-    The ants city[0] and city[1] return a string (Boca)(Key West) which 
-    is then searched in the disMatrix. This is done with a dictionary 
-    (disMatDict) where {Boca : [0, 2, 4, 5...]} and 
-    {Key West : [4, 6, 0, 4...]}. The value of 0 indicates which city is 
-    at index 0 of disMatrix so disMatrix[0] is Boca and disMatrix[2] 
-    is key west. disMatrix[0][2] will give us the distance between those two 
-    cities'''
-    
-    # return disMatrix, disMatDict
 
     return disMatrix
 
@@ -446,25 +387,70 @@ def create_cities(NUM_ANT_FACTOR, NUM_CITY):
         
 
 
+def plot_generations_and_route(BEST_ITERATION_DISTANCE, NUM_ITERATIONS, 
+                               BEST_GLOBAL_ROUTE, BEST_GLOBAL_DISTANCE):
+    '''Plots the best routes per iteration and the best route length with
+        a diagram showing where the cities are'''
+    
+    plt.figure(figsize=(9.5,9.5))
+
+    # Plotting the iteration plot
+    xaxis = list(range(0, NUM_ITERATIONS))
+
+    plt.subplot(2, 1, 1)
+    plt.plot(xaxis, BEST_ITERATION_DISTANCE)
+    plt.title('Best Routes Each Iteration')
+    plt.xlabel('Iteration')
+    plt.ylabel('Route Distance')
+    
+
+    # Plotting the Best Tour plot
+    xLis = []
+    yLis = []
+    for city in BEST_GLOBAL_ROUTE:
+
+        xPos, yPos = city.get_coords()
+
+        xLis.append(xPos)
+        yLis.append(yPos)
+
+    xLast, yLast = BEST_GLOBAL_ROUTE[0].get_coords()
+    xLis.append(xLast)
+    yLis.append(yLast)
+
+    plt.subplot(2, 1, 2)
+    plt.axis([0, 200, 0, 200])
+
+    plt.plot(xLis, yLis, c='black', mfc='red', marker='o',
+             markersize='7', label='Cities')
+    plt.plot(xLis[0], yLis[0], c='black', mfc='green', marker='s', 
+             markersize='9', label='Start')
+    plt.plot(xLis[1], yLis[1], c='black', mfc='purple', marker='D', 
+             markersize='9', label='Next')
+    plt.title('Best Route with length of: ' + str(round(BEST_GLOBAL_DISTANCE, 3)))
+    plt.legend()
+
+
+    # Plot both subplots
+    plt.tight_layout(pad=4.0)
+    plt.show()
+
 
 def main():
     '''main function'''
 
     # Hyperparameters
     NUM_ANT_FACTOR = 1
-    NUM_CITY = 10
-    ALPHA = 1
-    BETA  = 2
+    NUM_CITY = 20
+    ALPHA = 10
+    BETA  = 10
     RANDOM_ATTRACTION_FACTOR = 0.5
-    NUM_ITERATIONS = 1000
-    EVAPORATION_RATE = 0.5
+    NUM_ITERATIONS = 300
+    EVAPORATION_RATE = 0.2
 
     BASELINE_DISTANCE = 0
-    
     BEST_ITERATION_DISTANCE = []
     CURRENT_TOUR = 0
-    
-
     BEST_GLOBAL_DISTANCE = math.inf
     BEST_GLOBAL_ROUTE = []
 
@@ -488,12 +474,6 @@ def main():
             BASELINE_DISTANCE += city.get_distance(cityList[0])
         else:
             BASELINE_DISTANCE += city.get_distance(cityList[index+1])
-
-    
-        
-    
-
-
 
     disMatrix = create_distance_matrix(cityList)
     # print('\n')
@@ -528,11 +508,22 @@ def main():
 
 
     # creating a temporary pheratrix
-    tempPheramones = pheratrix
+    tempPheramones = copy.deepcopy(pheratrix)
 
-    for _ in range(NUM_ITERATIONS):
+    for iteration in range(NUM_ITERATIONS):
 
         TEMP_TOUR_LIST = []
+
+        if iteration != 0:
+            # Evaporation
+            for x in range(len(tempPheramones)):
+                for y in range(len(tempPheramones)):
+                    if x == y:
+                        continue
+                    else:
+                        tempPheramones[x][y] *= EVAPORATION_RATE
+
+
 
         for ant in antColony:
 
@@ -540,10 +531,11 @@ def main():
 
             BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, CURRENT_TOUR, tempPheramones = do_tour(ant, cityList, strCityList, disMatrix, 
                                         pheratrix, ALPHA, BETA, 
-                                        BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, tempPheramones)
+                                        BEST_GLOBAL_DISTANCE, BEST_GLOBAL_ROUTE, 
+                                        tempPheramones, EVAPORATION_RATE)
             
 
-
+            
 
 
             TEMP_TOUR_LIST.append(CURRENT_TOUR)
@@ -551,10 +543,9 @@ def main():
 
             # break
 
-        pheratrix = tempPheramones
+        
 
-        TEMP_TOUR_LIST.sort()
-        BEST_ITERATION_DISTANCE.append(TEMP_TOUR_LIST[0])
+        pheratrix = tempPheramones
 
 
 
@@ -565,6 +556,16 @@ def main():
             ant.set_distance(0)
             randomindex = random.randint(0, len(cityList) - 1)
             ant.set_start(cityList[randomindex])
+
+
+        
+        # plots the first and subsequent generations 
+        if (iteration + 1) % 10 == 0 or iteration == 0:
+            plot_generations_and_route(BEST_ITERATION_DISTANCE, iteration, 
+                                       BEST_GLOBAL_ROUTE, BEST_GLOBAL_DISTANCE)
+            
+        TEMP_TOUR_LIST.sort()
+        BEST_ITERATION_DISTANCE.append(TEMP_TOUR_LIST[0])
 
 
 
