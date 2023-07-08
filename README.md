@@ -1,3 +1,3 @@
 # TSPwithACO
 
-This is for CAP4630
+Solving the Traveling Salesman Problem with Ant Colony Optimization
